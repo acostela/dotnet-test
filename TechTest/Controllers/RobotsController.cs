@@ -28,21 +28,12 @@ public class RobotsController : ControllerBase
         var repository = new Repository(_context);
 
         var robots = repository.GetRobots().Result;
-        var robotResult = new List<Robot>();
+        var robotResult = robots.Where(robot => robot.ConditionExpertise == condition).ToList();
 
-        int i = 0;
-        while(i < robots.Count)
-        {
-            if (robots[i].ConditionExpertise == condition)
-            {
-                robotResult.Add(robots[i]);
-            }else if (robotResult.Count == 0 && robots.Count == i + 1)
-                throw new IndexOutOfRangeException();
+        if (robotResult.Count == 0 && robots.Count > 0)
+            throw new IndexOutOfRangeException();
 
-            ++i;
-        }
-
-        if(robotResult.Count > 0)
+        if (robotResult.Count > 0)
         {
             int j = 0;
             while (j < robotResult.Count)

@@ -74,4 +74,56 @@ public class RobotsControllerTests
         context.Database.EnsureDeleted();
         context.Dispose();
     }
+    
+    [TestMethod]
+    public void AskingRobotsWithSpecificExpertise()
+    {
+        //Initialize empty in-memory db
+        var options = new DbContextOptionsBuilder<DataContext>()
+            .UseInMemoryDatabase(databaseName: "techtestdb-test")
+            .Options;
+        var context = new DataContext(options);
+
+        //Set up test data
+        var robotBuilder = new RobotBuilder();
+        Robot bloatyHeadRobot = robotBuilder.WithId(1).WithConditionExpertise("Bloaty Head").Build();
+        context.Robots.Add(bloatyHeadRobot);
+
+        var startDateTime = new DateTime(2022, 1, 1, 11, 0, 0, DateTimeKind.Utc);
+        var endDateTime = new DateTime(2022, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        
+        AppointmentBuilder appointmentBuilder = new AppointmentBuilder();
+        var appointment = appointmentBuilder.WithRobot(bloatyHeadRobotNotAvailable)
+            .WithStartAndEnd(startDateTime, endDateTime);
+        
+        Robot bloatyHeadRobotNotAvailable = robotBuilder.WithId(3).WithConditionExpertise("Bloaty Head").Build();
+
+        context.Robots.Add(bloatyHeadRobotNotAvailable);
+        context.Robots.Add(robotBuilder.WithId(2).WithConditionExpertise("Another").Build());
+        context.SaveChanges();
+            
+        var controller = new RobotsController(context);
+
+        //Call controller and get result
+        var result = controller.GetAvailable("Bloaty Head");
+
+        var bloatyRobot = new
+        {
+            id = 1,
+            conditionExpertise = "Bloaty Head"
+        };
+        var expectedResult = new List<object>
+        {
+            bloatyRobot
+        };
+
+        var actualListOfRobots = (List<object>)((OkObjectResult)result).Value;
+
+        Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        Assert.AreEqual(expectedResult.Count, 1);
+        Assert.AreEqual(expectedResult[0], bloatyRobot);
+
+        context.Database.EnsureDeleted();
+        context.Dispose();
+    }
 }
