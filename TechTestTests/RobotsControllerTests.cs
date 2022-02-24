@@ -55,18 +55,21 @@ public class RobotsControllerTests
         //Call controller and get result
         var result = controller.GetAvailable("Bloaty Head");
 
+        var bloatyRobot = new
+        {
+            id = 1,
+            conditionExpertise = "Bloaty Head"
+        };
         var expectedResult = new List<object>
         {
-            new
-            {
-                Id = 1, 
-                conditionExpertise = "Bloaty Head"
-            }
+            bloatyRobot
         };
 
+        var actualListOfRobots = (List<object>)((OkObjectResult)result).Value;
+
         Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        // Assert.AreEqual(expectedResult, ((OkObjectResult)result).Value);
-        CollectionAssert.AreEqual(expectedResult, (List<object>)((OkObjectResult)result).Value);
+        Assert.AreEqual(expectedResult.Count, 1);
+        Assert.AreEqual(expectedResult[0], bloatyRobot);
 
         context.Database.EnsureDeleted();
         context.Dispose();
