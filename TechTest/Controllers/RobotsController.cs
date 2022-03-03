@@ -9,11 +9,13 @@ namespace TechTest.Controllers;
 [Route("[controller]")]
 public class RobotsController : ControllerBase
 {
-    private readonly DataContext _context;
+    private readonly IDataContext _context;
+    private readonly IRepository _repository;
 
-    public RobotsController(DataContext context)
+    public RobotsController(IDataContext context, IRepository repository)
     {
-        this._context = context;
+        _context = context;
+        _repository = repository;
     }
 
     [HttpGet("required_rooms")]
@@ -23,11 +25,10 @@ public class RobotsController : ControllerBase
     }
 
     [HttpPost("available")]
-    public IActionResult GetAvailable(string condition)
+    public IActionResult GetAvailable(string condition, DateTime? when = null)
     {
-        var repository = new Repository(_context);
 
-        var robots = repository.GetRobots().Result;
+        var robots = _repository.GetRobots().Result;
         var robotResult = new List<Robot>();
 
         int i = 0;

@@ -8,6 +8,8 @@ var services = builder.Services;
 services.AddControllers();
 services.AddScoped<IRobotService, RobotService>();
 services.AddDbContext<DataContext>(opt => opt.UseInMemoryDatabase("techtestdb"));
+services.AddSingleton<IRepository, Repository>();
+services.AddSingleton<IDataContext, DataContext>();
 services.AddSwaggerGen();
 
 var app = builder.Build();

@@ -3,14 +3,21 @@ using Microsoft.EntityFrameworkCore;
 using TechTest.Domain;
 
 namespace TechTest.Data;
+
+public interface IRepository
+{
+    Task<List<Robot>> GetRobots();
+    Task<List<Robot>> GetRobots(Expression<Func<Robot, bool>> conditions);
+}
+
 /// <summary>
 /// This class emulates the database access
 /// </summary>
-public class Repository
+public class Repository : IRepository
 {
-    private readonly DataContext _context;
+    private readonly IDataContext _context;
 
-    public Repository(DataContext context)
+    public Repository(IDataContext context)
     {
         _context = context;
     }

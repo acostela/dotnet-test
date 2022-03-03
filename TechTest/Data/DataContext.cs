@@ -2,7 +2,14 @@
 using TechTest.Domain;
 
 namespace TechTest.Data;
-public class DataContext : DbContext
+
+public interface IDataContext
+{
+    DbSet<Robot> Robots { get; set; }
+    DbSet<Appointment> Appointments { get; set; }
+}
+
+public class DataContext : DbContext, IDataContext
 {
     public DataContext(DbContextOptions<DataContext> options)
         : base(options)
