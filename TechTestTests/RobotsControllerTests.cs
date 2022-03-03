@@ -56,25 +56,39 @@ public class RobotsControllerTests
         var robotBuilder = new RobotBuilder();
         var appointmentBuilder = new AppointmentBuilder();
         var condition = "flu";
-        var robot = robotBuilder
+        var availableRobot = robotBuilder
             .WithId(0)
             .WithConditionExpertise(condition)
             .Build();
-        var appointment = appointmentBuilder
+        var notOverlappingAppointment = appointmentBuilder
             .WithId(0)
-            .WithRobot(robot)
+            .WithRobot(availableRobot)
             .WithStartAndEnd(new DateTime(2022, 01, 01, 13, 0, 0), new DateTime(2022, 01, 01, 14, 0, 0))
             .Build();
-        robot.Appointments = new List<Appointment> { appointment };
-        A.CallTo(() => _repository.GetRobots()).Returns(Task.FromResult(new List<Robot> { robot }));
-        var expectedRobot = new { id = 0, conditionExpertise = condition };
+        availableRobot.Appointments = new List<Appointment> { notOverlappingAppointment };
+        
+        var notAvailableRobot = robotBuilder
+            .WithId(1)
+            .WithConditionExpertise(condition)
+            .Build();
+        var overlappingAppointment = appointmentBuilder
+            .WithId(1)
+            .WithRobot(notAvailableRobot)
+            .WithStartAndEnd(new DateTime(2022, 01, 01, 15, 0, 0), new DateTime(2022, 01, 01, 16, 0, 0))
+            .Build();
+        notAvailableRobot.Appointments = new List<Appointment> { overlappingAppointment };
+        
+        
+        A.CallTo(() => _repository.GetRobots()).Returns(Task.FromResult(new List<Robot> { availableRobot, notAvailableRobot }));
 
         var availableRobotsResponse = _controller.GetAvailable(condition, new DateTime(2022, 01, 01, 15, 0, 0));
 
-        availableRobotsResponse.Should().BeOfType<OkObjectResult>();
-        var result = availableRobotsResponse as OkObjectResult;
-        result.Value.Should().NotBeNull();
-        result.Value.Should().BeEquivalentTo(expectedRobot);
+        availableRobotsResponse.Result.Should().BeOfType<OkObjectResult>();
+        var response = availableRobotsResponse.Result.As<OkObjectResult>();
+        var result = response.Value.As<List<RobotDto>>();
+        result.Should().HaveCount(1);
+        result.First().Id.Should().Be(availableRobot.Id);
+        result.First().ConditionExpertise.Should().Be(availableRobot.ConditionExpertise);
 
     }
 }

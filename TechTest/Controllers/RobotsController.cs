@@ -25,10 +25,13 @@ public class RobotsController : ControllerBase
     }
 
     [HttpPost("available")]
-    public IActionResult GetAvailable(string condition, DateTime? when = null)
+    public ActionResult<List<RobotDto>> GetAvailable(string condition, DateTime? when = null)
     {
 
         var robots = _repository.GetRobots().Result;
+        robots = robots.Where(o => !
+            o.Appointments.Any(appointment => when >= appointment.StartDate && when <= appointment.EndDate )).ToList();
+        
         var robotResult = new List<Robot>();
 
         int i = 0;
@@ -55,12 +58,14 @@ public class RobotsController : ControllerBase
             }
         }
 
-        var response = new List<object>();
+        var response = new List<RobotDto>();
         for (int j = 0; j < robotResult.Count; j++)
         {
-            response.Add(new { id = robotResult[j].Id, conditionExpertise = robotResult[j].ConditionExpertise });
+            response.Add(new RobotDto(robotResult[j].Id, robotResult[j].ConditionExpertise));
         }
 
         return base.Ok(response);
     }
 }
+
+public record RobotDto(int Id, string ConditionExpertise);
